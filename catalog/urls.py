@@ -19,9 +19,9 @@ urlpatterns += [
 ]
 
 urlpatterns += [
-    path('accounts/login', views.index, name='index'),
-    path('accounts/logout', views.index, name='index'),
-    path('accounts/signup', views.index, name='index'),
+    path('accounts/login', views.login_view, name='login'),
+    path('accounts/logout', views.logout_view, name='logout'),
+    path('accounts/signup', views.signup_view, name='signup'),
 ]
 
 urlpatterns += [

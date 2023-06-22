@@ -1,13 +1,14 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.fields import uuid
 
 
-class User(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True)
-    name = models.CharField(max_length=255)
-    email = models.EmailField()
-    date_of_birth = models.DateField()
-    # books = models.('Book')
+# class User(models.Model):
+#     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+#     name = models.CharField(max_length=255)
+#     email = models.EmailField()
+#     date_of_birth = models.DateField()
+# books = models.('Book')
 
 
 class Book(models.Model):
@@ -27,12 +28,19 @@ class BookCopy(models.Model):
     book = models.ForeignKey("Book", on_delete=models.CASCADE)
     available = models.BooleanField()
     due_date = models.DateField()
+    borrower = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+
+    class Meta:
+        permissions = (
+            ("can_see_all_borrowed", "can see all borrowed book copies"),
+            ("can_see_my_borrowed", "can see my borrowed book copies"),
+        )
 
 
-class BookBorrowCard(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True)
-    book = models.ForeignKey("BookCopy", on_delete=models.CASCADE)
-    borrower = models.ForeignKey("User", on_delete=models.CASCADE)
+# class BookBorrowCard(models.Model):
+#     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+#     book = models.ForeignKey("BookCopy", on_delete=models.CASCADE)
+#     borrower = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
 class Author(models.Model):
