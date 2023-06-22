@@ -103,3 +103,61 @@ def return_book(request):
             return JsonResponse({"message": "Successfully"})
     else:
         return HttpResponse(b"Method not allowed or not Auth", status=405)
+
+
+# author
+@login_required
+@permission_required('catalog.can_add_book')
+def publish_book(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        book = Book.objects.create(
+            title=request.POST['title'],
+            author=request.POST['author'],
+            ISBN=request.POST['ISBN'],
+            summary=request.POST['summary'],
+            genre=request.POST['genre'],
+        )
+        book.save()
+        return JsonResponse({"message": "Successfully"})
+
+
+@permission_required('catalog.can_add_book')
+@login_required
+def my_publish(request):
+    if request.method == 'GET' and request.user.is_authenticated:
+        books = Book.objects.filter(author=request.user.id)
+        return JsonResponse(serializers.serialize("json", books), safe=False)
+    else:
+        return HttpResponse(b"Method not allowed or not Auth", status=405)
+
+
+@permission_required('catalog.can_add_book')
+@login_required
+def update_book(request, isbn):
+    if request.method == 'PUT' and request.user.is_authenticated:
+        book = Book.objects.get(isbn=isbn)
+        if book.author != request.user.id:
+            return HttpResponse(b"Not author of this book", status=405)
+        book.title = request.POST['title']
+        book.author = request.POST['author']
+        book.ISBN = request.POST['ISBN']
+        book.summary = request.POST['summary']
+        book.genre = request.POST['genre']
+        book.save()
+        return JsonResponse({"message": "Successfully"})
+    else:
+        return HttpResponse(b"Method not allowed or not Auth", status=405)
+
+
+@permission_required('catalog.can_add_book')
+@login_required
+def delete_book(request, isbn):
+    if request.method == 'DELETE' and request.user.is_authenticated:
+        book = Book.objects.get(isbn=isbn)
+        if book.author != request.user.id:
+            return HttpResponse(b"Not author of this book", status=405)
+        book.delete()
+        return JsonResponse({"message": "Successfully"})
+    else:
+        return HttpResponse(b"Method not allowed or not Auth", status=405)
+# librarians

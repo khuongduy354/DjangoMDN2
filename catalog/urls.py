@@ -25,8 +25,8 @@ urlpatterns += [
 ]
 
 urlpatterns += [
-    path('author/publish', views.index, name='index'),
-    path('author/books/<int>/update', views.index, name='index'),
-    path('author/books/<int>/delete', views.index, name='index'),
-    path('author/books/<int>', views.index, name='index'),
+    path('author/publish', views.publish_book, name='index'),
+    path('author/books', views.my_publish, name='index'),
+    path('author/books/<str:isbn>/update', views.update_book, name='index'),
+    path('author/books/<str:isbn>/delete', views.delete_book, name='index'),
 ]
