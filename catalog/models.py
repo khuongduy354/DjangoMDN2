@@ -26,9 +26,18 @@ class Book(models.Model):
 class BookCopy(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     book = models.ForeignKey("Book", on_delete=models.CASCADE)
-    available = models.BooleanField()
-    due_date = models.DateField()
+    due_date = models.DateField(null=True, default=None)
     borrower = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    AVAIL_CHOICES = (
+        ('a', 'Available'),
+        ('r', 'Reserved'),
+        ('b', 'Borrowed')
+    )
+
+    availability = models.CharField(
+        choices=AVAIL_CHOICES, default="a", max_length=1)
+
+    requests = models.ManyToManyField(User, related_name="requests")
 
     class Meta:
         permissions = (

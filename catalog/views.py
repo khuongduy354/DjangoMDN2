@@ -66,9 +66,16 @@ def logout_view(request):
 # personal
 @permission_required('catalog.can_see_my_borrowed')
 @login_required
-def get_my_borrowed_books(request):
+def get_my_books(request):
     if request.method == 'GET' and request.user.is_authenticated:
-        books = BookCopy.objects.filter(borrower=request.user)
+        # get borrowed books as default
+        books = BookCopy.objects.filter(borrower=request.user.id)
+        cat = request.query_params.get('category')
+        if cat == "requested":
+            books = BookCopy.objects.filter(requests=request.user.id)
+        if cat == "reserved":
+            books = BookCopy.objects.filter(borrower=request.user.id)
+
         return JsonResponse(serializers.serialize("json", books), safe=False)
     else:
         return HttpResponse(b"Method not allowed or not Auth", status=405)
@@ -76,12 +83,11 @@ def get_my_borrowed_books(request):
 
 @permission_required('catalog.can_see_my_borrowed')
 @login_required
-def borrow_book(request):
+def reserve_book(request, isbn):
     if request.method == 'POST' and request.user.is_authenticated:
-        book = BookCopy.objects.get(id=request.POST['book_id'])
-        if book.available:
-            book.borrower = request.user.id
-            book.available = False
+        book = BookCopy.objects.get(isbn=isbn)
+        if book.availability == "a":
+            book.requests.add(request.user.id)
             book.save()
             return JsonResponse({"message": "Successfully"})
         else:
@@ -160,4 +166,50 @@ def delete_book(request, isbn):
         return JsonResponse({"message": "Successfully"})
     else:
         return HttpResponse(b"Method not allowed or not Auth", status=405)
+
+
 # librarians
+@permission_required('catalog.can_see_all_borrowed')
+@login_required
+def add_copy(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        book = Book.objects.get(isbn=request.POST['isbn'])
+        book_copy = BookCopy.objects.create(
+            book=book,
+            available=True,
+        )
+        book_copy.save()
+        return JsonResponse({"message": "Successfully"})
+    else:
+        return HttpResponse(b"Method not allowed or not Auth", status=405)
+
+
+@permission_required('catalog.can_see_all_borrowed')
+@login_required
+def all_borrowed(request):
+    if request.method == 'GET' and request.user.is_authenticated:
+        cat = request.query_params.get('category')
+        # default to get requests books
+        books = BookCopy.objects.filter(requests__isnull=False)
+        if cat == "reserve":
+            books = BookCopy.objects.filter(availability="r")
+        if cat == "borrow":
+            books = BookCopy.objects.filter(availability="b")
+        return JsonResponse(serializers.serialize("json", books), safe=False)
+    else:
+        return HttpResponse(b"Method not allowed or not Auth", status=405)
+
+
+@permission_required('catalog.can_see_all_borrowed')
+@login_required
+def change_copy(request, isbn):
+    if request.method == 'POST' and request.user.is_authenticated:
+        book = BookCopy.objects.get(isbn=isbn)
+        book.available = request.POST['available']
+        book.due_date = request.POST['due_back']
+        book.borrower = request.POST['borrower']
+
+        book.save()
+        return JsonResponse({"message": "Successfully"})
+    else:
+        return HttpResponse(b"Method not allowed or not Auth", status=405)
