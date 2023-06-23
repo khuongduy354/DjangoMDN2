@@ -12,6 +12,7 @@ from rest_framework.decorators import permission_classes
 
 from catalog.models import Book, BookCopy
 from rest_framework import generics
+from catalog.permission import AuthorPerm, LibrarianPerm, UserPerm
 
 from catalog.serializer import BookCopySerializer, BookSerializer
 
@@ -114,7 +115,7 @@ class Logout(APIView):
 
 
 # personal
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, UserPerm])
 class MyBooks(APIView):
     def get(self, request):
         # get borrowed books as default
@@ -146,7 +147,7 @@ class MyBooks(APIView):
 #     else:
 #         return HttpResponse(b"Method not allowed or not Auth", status=405)
 
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, UserPerm])
 class ReserveBook(APIView):
     def post(self, request, isbn):
         book = BookCopy.objects.get(isbn=isbn)
@@ -189,7 +190,7 @@ class ReserveBook(APIView):
 #
 
 # author
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, AuthorPerm])
 class PublishBook(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
@@ -223,7 +224,7 @@ class PublishBook(viewsets.ModelViewSet):
 #         book.save()
 #         return JsonResponse({"message": "Successfully"})
 
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, AuthorPerm])
 class MyPublish(ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
@@ -240,7 +241,7 @@ class MyPublish(ModelViewSet):
 #         return JsonResponse(serializers.serialize("json", books), safe=False)
 #     else:
 #         return HttpResponse(b"Method not allowed or not Auth", status=405)
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, AuthorPerm])
 class UpdateBook(ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
@@ -265,7 +266,7 @@ class UpdateBook(ModelViewSet):
 #     else:
 
 
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, AuthorPerm])
 class DeleteBook(ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
@@ -288,7 +289,7 @@ class DeleteBook(ModelViewSet):
 
 
 # librarians
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, LibrarianPerm])
 class AddCopy(ModelViewSet):
     queryset = BookCopy.objects.all()
     serializer_class = BookCopySerializer
@@ -314,7 +315,7 @@ class AddCopy(ModelViewSet):
 #         return JsonResponse({"message": "Successfully"})
 #     else:
 #         return HttpResponse(b"Method not allowed or not Auth", status=405)
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, LibrarianPerm])
 class AllBorrowed(ModelViewSet):
     queryset = BookCopy.objects.all()
     serializer_class = BookCopySerializer
@@ -346,7 +347,7 @@ class AllBorrowed(ModelViewSet):
 #         return HttpResponse(b"Method not allowed or not Auth", status=405)
 #
 
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, LibrarianPerm])
 class ChangeCopy(ModelViewSet):
     queryset = BookCopy.objects.all()
     serializer_class = BookCopySerializer
