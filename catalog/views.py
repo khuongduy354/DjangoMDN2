@@ -1,17 +1,18 @@
 from django.contrib.auth import logout, models
 from django.contrib.auth import authenticate, login
+from drf_yasg.codecs import openapi
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
-from rest_framework import viewsets
+from rest_framework.decorators import action, permission_classes
+from rest_framework import request, viewsets
 
 from catalog.models import Book, BookCopy
 from catalog.permission import AuthorPerm, LibrarianPerm, UserPerm
+from catalog.serializer import BookCopySerializer, BookSerializer, EmptySerializer, LogInUpRequestSerializer
 
-from catalog.serializer import BookCopySerializer, BookSerializer
-
+from drf_yasg.utils import no_body, swagger_auto_schema, swagger_serializer_method
 
 # general
 
@@ -26,6 +27,9 @@ class BookViewset(viewsets.ModelViewSet,  RetrieveModelMixin, ListModelMixin):
     Get one book detail
     """
 
+    def list(self, request):
+        return self.list(request)
+
     def retrieve(self, request, *args, **kwargs):
         copies = BookCopy.objects.filter(book=kwargs['isbn'])
         serializer = BookCopySerializer(copies, many=True)
@@ -34,6 +38,7 @@ class BookViewset(viewsets.ModelViewSet,  RetrieveModelMixin, ListModelMixin):
 
 
 class Login(APIView):
+    @swagger_auto_schema(responses={200: None}, request_body=LogInUpRequestSerializer)
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -47,6 +52,7 @@ class Login(APIView):
 
 
 class Signup(APIView):
+    @swagger_auto_schema(responses={200: None}, request_body=LogInUpRequestSerializer)
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -71,15 +77,11 @@ class Logout(APIView):
 
 # personal
 @permission_classes([IsAuthenticated, UserPerm])
-class UserBookCopyViewset(viewsets.ModelViewSet, UpdateModelMixin, ListModelMixin):
+class UserBookCopyViewset(viewsets.GenericViewSet, UpdateModelMixin, ListModelMixin):
+    """Manager personal books"""
     queryset = BookCopy.objects.all()
     serializer_class = BookCopySerializer
     lookup_field = 'isbn'
-
-    """
-    Show books depend on category
-    Reserve book copies
-    """
 
     def list(self, request):
         queryset = self.get_queryset()
@@ -97,6 +99,11 @@ class UserBookCopyViewset(viewsets.ModelViewSet, UpdateModelMixin, ListModelMixi
         serializer = BookCopySerializer(queryset, many=True)
         return Response(serializer.data)
 
+    @swagger_auto_schema(auto_schema=None)
+    def partial_update(self, request, *args, **kwargs):
+        pass
+
+    @swagger_auto_schema(request_body=no_body, responses={200: None})
     def update(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         if queryset.availability == "a":

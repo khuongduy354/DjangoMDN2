@@ -9,16 +9,16 @@ lib_router = SimpleRouter()
 me_router = SimpleRouter()
 
 author_router.register('books', views.AuthorBookViewset,
-                       basename='author_books')
-me_router.register('books', views.UserBookCopyViewset, basename='me_books')
-lib_router.register('copies', views.LibrarianBookViewset, basename='lib_books')
+                       basename='author')
+me_router.register('books', views.UserBookCopyViewset, basename='my books')
+lib_router.register('copies', views.LibrarianBookViewset, basename='librian')
 book_router.register('books', views.BookViewset, basename='books')
 
 urlpatterns = [
     path("author/", include(author_router.urls)),
-    path("", include(book_router.urls), name="books"),
-    path("lib/", include(lib_router.urls), name="lib_book"),
-    path("me/", include(me_router.urls), name="me_books"),
+    path("", include(book_router.urls)),
+    path("lib/", include(lib_router.urls)),
+    path("me/", include(me_router.urls)),
 ]
 """
 GET books/

@@ -31,3 +31,13 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = '__all__'
+
+
+# REQUEST SERIALIZERS
+class LogInUpRequestSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+
+class EmptySerializer(serializers.Serializer):
+    pass
