@@ -65,6 +65,7 @@ class Signup(APIView):
             return Response(error_message, status=400)
         user = models.User.objects.create_user(
             username=username, password=password)
+        user.groups.add(models.Group.objects.get(name="user"))
         return Response({"message": "Successfully"}, status=200)
 
 
@@ -79,7 +80,7 @@ class Logout(APIView):
 
 
 # personal
-@permission_classes([IsAuthenticated, UserPerm])
+@ permission_classes([IsAuthenticated, UserPerm])
 class UserBookCopyViewset(viewsets.GenericViewSet, UpdateModelMixin, ListModelMixin):
     """Manager personal books"""
     queryset = BookCopy.objects.all()
@@ -102,11 +103,11 @@ class UserBookCopyViewset(viewsets.GenericViewSet, UpdateModelMixin, ListModelMi
         serializer = BookCopySerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @swagger_auto_schema(auto_schema=None)
+    @ swagger_auto_schema(auto_schema=None)
     def partial_update(self, request, *args, **kwargs):
         pass
 
-    @swagger_auto_schema(request_body=no_body, responses={200: None})
+    @ swagger_auto_schema(request_body=no_body, responses={200: None})
     def update(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         if queryset.availability == "a":
@@ -117,7 +118,7 @@ class UserBookCopyViewset(viewsets.GenericViewSet, UpdateModelMixin, ListModelMi
             return Response(b"Book is borrowed", status=400)
 
 
-@permission_classes([IsAuthenticated, AuthorPerm])
+@ permission_classes([IsAuthenticated, AuthorPerm])
 class AuthorBookViewset(viewsets.GenericViewSet, CreateModelMixin,  UpdateModelMixin, DestroyModelMixin, ListModelMixin):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
@@ -126,11 +127,11 @@ class AuthorBookViewset(viewsets.GenericViewSet, CreateModelMixin,  UpdateModelM
     """
     Create new book
     Update book
-    Delete Book 
+    Delete Book
     List published books
     """
 
-    @swagger_auto_schema(auto_schema=None)
+    @ swagger_auto_schema(auto_schema=None)
     def partial_update(self, request, *args, **kwargs):
         pass
 
@@ -138,19 +139,19 @@ class AuthorBookViewset(viewsets.GenericViewSet, CreateModelMixin,  UpdateModelM
         return Book.objects.filter(author=self.request.user.id)
 
 
-@permission_classes([IsAuthenticated, LibrarianPerm])
+@ permission_classes([IsAuthenticated, LibrarianPerm])
 class LibrarianBookViewset(viewsets.GenericViewSet, CreateModelMixin, UpdateModelMixin, ListModelMixin):
     queryset = BookCopy.objects.all()
     serializer_class = BookSerializer
     lookup_field = 'isbn'
 
     """
-    Create new book copy 
+    Create new book copy
     Update book copy
-    List book copies 
+    List book copies
     """
 
-    @swagger_auto_schema(auto_schema=None)
+    @ swagger_auto_schema(auto_schema=None)
     def partial_update(self, request, *args, **kwargs):
         pass
 

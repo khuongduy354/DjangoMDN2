@@ -41,8 +41,8 @@ class BookCopy(models.Model):
 
     class Meta:
         permissions = (
-            ("can_see_all_borrowed", "can see all borrowed book copies"),
-            ("can_see_my_borrowed", "can see my borrowed book copies"),
+            ("can see all borrowed book copies", "can_see_all_borrowed"),
+            ("can see my borrowed book copies", "can_see_my_borrowed"),
         )
 
 
