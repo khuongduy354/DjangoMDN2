@@ -1,11 +1,6 @@
-from django.core import serializers
 from django.contrib.auth import logout, models
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
 from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required, permission_required
-from rest_framework.mixins import CreateModelMixin, ListModelMixin, UpdateModelMixin
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -13,22 +8,24 @@ from rest_framework.decorators import permission_classes
 from rest_framework import viewsets
 
 from catalog.models import Book, BookCopy
-from rest_framework import generics
 from catalog.permission import AuthorPerm, LibrarianPerm, UserPerm
 
 from catalog.serializer import BookCopySerializer, BookSerializer
 
 
-def index(request):
-    return JsonResponse({"message": "Hello, world!"})
-
 # general
 
 
-class BookViewset(viewsets.ModelViewSet):
+class BookViewset(viewsets.ModelViewSet,  RetrieveModelMixin, ListModelMixin):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     lookup_field = "isbn"
+
+    def retrieve(self, request, *args, **kwargs):
+        copies = BookCopy.objects.filter(book=kwargs['isbn'])
+        serializer = BookCopySerializer(copies, many=True)
+
+        return Response({"copies": serializer.data, "book": self.get_queryset().get(isbn=kwargs['isbn'])})
 
 
 class Login(APIView):
@@ -69,7 +66,7 @@ class Logout(APIView):
 
 # personal
 @permission_classes([IsAuthenticated, UserPerm])
-class UserBookCopyViewset(viewsets.ModelViewSet):
+class UserBookCopyViewset(viewsets.ModelViewSet, CreateModelMixin,  UpdateModelMixin, ListModelMixin):
     queryset = BookCopy.objects.all()
     serializer_class = BookCopySerializer
     lookup_field = 'isbn'
@@ -103,23 +100,20 @@ class UserBookCopyViewset(viewsets.ModelViewSet):
         else:
             return Response(b"Book is borrowed", status=400)
 
-# author
-
 
 @permission_classes([IsAuthenticated, AuthorPerm])
-class AuthorBookViewset(viewsets.ModelViewSet):
+class AuthorBookViewset(viewsets.ModelViewSet, CreateModelMixin,  UpdateModelMixin, DestroyModelMixin, ListModelMixin):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    lookup_field = 'isbn'  # use for delete, retrieve , update
+    lookup_field = 'isbn'
 
     def get_queryset(self):
         return Book.objects.filter(author=self.request.user.id)
 
 
-# librarians
 @permission_classes([IsAuthenticated, LibrarianPerm])
-class LibrarianBookViewset(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
+class LibrarianBookViewset(viewsets.ModelViewSet, CreateModelMixin, UpdateModelMixin, ListModelMixin):
+    queryset = BookCopy.objects.all()
     serializer_class = BookSerializer
     lookup_field = 'isbn'
 
@@ -133,28 +127,3 @@ class LibrarianBookViewset(viewsets.ModelViewSet):
         else:
             books = BookCopy.objects.filter(requests__isnull=False)
         return Response(books)
-
-
-# @permission_required('catalog.can_see_all_borrowed')
-# @login_required
-# def all_borrowed(request):
-#     if request.method == 'GET' and request.user.is_authenticated:
-#         cat = request.query_params.get('category')
-#         # default to get requests books
-#         books = BookCopy.objects.filter(requests__isnull=False)
-#         if cat == "reserve":
-#             books = BookCopy.objects.filter(availability="r")
-#         if cat == "borrow":
-#             books = BookCopy.objects.filter(availability="b")
-#         return JsonResponse(serializers.serialize("json", books), safe=False)
-#     else:
-#         return HttpResponse(b"Method not allowed or not Auth", status=405)
-#
-
-# @permission_classes([IsAuthenticated, LibrarianPerm])
-# class ChangeCopy(viewsets.ModelViewSet):
-#     queryset = BookCopy.objects.all()
-#     serializer_class = BookCopySerializer
-#
-#     def get_queryset(self):
-#         return BookCopy.objects.get(isbn=self.kwargs['isbn'])

@@ -5,14 +5,20 @@ from rest_framework.routers import SimpleRouter
 
 author_router = SimpleRouter()
 book_router = SimpleRouter()
+lib_router = SimpleRouter()
 
 author_router.register('books', views.AuthorBookViewset,
                        basename='author_books')
+lib_router.register('copies', views.LibrarianBookViewset, basename='lib_books')
 book_router.register('books', views.BookViewset, basename='books')
 
 urlpatterns = [
     path("author/", include(author_router.urls)),
-    path("", include(book_router.urls), name="publish_book"),
+    path("", include(book_router.urls), name="books"),
+    path("lib/", include(lib_router.urls), name="lib_book"),
+    path("accounts/login", views.Login.as_view(), name="login"),
+    path("accounts/logout", views.Logout.as_view(), name="logout"),
+    path("accounts/signup", views.Signup.as_view(), name="signup"),
 ]
 
 
