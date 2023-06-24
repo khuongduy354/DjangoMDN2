@@ -6,9 +6,11 @@ from rest_framework.routers import SimpleRouter
 author_router = SimpleRouter()
 book_router = SimpleRouter()
 lib_router = SimpleRouter()
+me_router = SimpleRouter()
 
 author_router.register('books', views.AuthorBookViewset,
                        basename='author_books')
+me_router.register('books', views.UserBookCopyViewset, basename='me_books')
 lib_router.register('copies', views.LibrarianBookViewset, basename='lib_books')
 book_router.register('books', views.BookViewset, basename='books')
 
@@ -16,11 +18,33 @@ urlpatterns = [
     path("author/", include(author_router.urls)),
     path("", include(book_router.urls), name="books"),
     path("lib/", include(lib_router.urls), name="lib_book"),
-    path("accounts/login", views.Login.as_view(), name="login"),
-    path("accounts/logout", views.Logout.as_view(), name="logout"),
-    path("accounts/signup", views.Signup.as_view(), name="signup"),
+    path("accounts/login/", views.Login.as_view(), name="login"),
+    path("accounts/logout/", views.Logout.as_view(), name="logout"),
+    path("accounts/signup/", views.Signup.as_view(), name="signup"),
+    path("me/", include(me_router.urls), name="me_books"),
 ]
+"""
+GET books/
+GET books/<str:isbn>/
 
+GET me/books?category=borrowed|reserved|requested
+PUT me/books/<str:isbn>
+
+
+POST accounts/login
+POST accounts/logout
+POST accounts/signup 
+
+GET author/books  
+POST author/books
+GET author/books/<str:isbn>
+PUT author/books/<str:isbn>
+DELETE author/books/<str:isbn>
+
+GET lib/books?category=borrowed|reserved|requested
+POST lib/copies
+PUT lib/copies/<str:isbn>
+"""
 
 # urlpatterns = [
 #     path('lib/add', views.add_copy, name='index'),

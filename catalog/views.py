@@ -139,9 +139,9 @@ class LibrarianBookViewset(viewsets.ModelViewSet, CreateModelMixin, UpdateModelM
     def list(self):
         books = self.get_queryset()
         cat = self.request.query_params.get('category')
-        if cat == "reserve":
+        if cat == "reserved":
             books = BookCopy.objects.filter(availability="r")
-        if cat == "borrow":
+        if cat == "borrowed":
             books = BookCopy.objects.filter(availability="b")
         else:
             books = BookCopy.objects.filter(requests__isnull=False)
