@@ -4,6 +4,8 @@ from drf_yasg.codecs import openapi
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import authentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action, permission_classes
 from rest_framework import request, viewsets
@@ -38,6 +40,7 @@ class BookViewset(viewsets.ModelViewSet,  RetrieveModelMixin, ListModelMixin):
 
 
 class Login(APIView):
+
     @swagger_auto_schema(responses={200: None}, request_body=LogInUpRequestSerializer)
     def post(self, request):
         username = request.data.get('username')
@@ -65,14 +68,14 @@ class Signup(APIView):
         return Response({"message": "Successfully"}, status=200)
 
 
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 class Logout(APIView):
     def post(self, request):
         if request.user.is_authenticated:
             logout(request)
             return Response({"message": "Successfully"})
         else:
-            return Response(b"Method not allowed or not Auth", status=405)
+            return Response(b"User is not authenticated", status=400)
 
 
 # personal
@@ -115,7 +118,7 @@ class UserBookCopyViewset(viewsets.GenericViewSet, UpdateModelMixin, ListModelMi
 
 
 @permission_classes([IsAuthenticated, AuthorPerm])
-class AuthorBookViewset(viewsets.ModelViewSet, CreateModelMixin,  UpdateModelMixin, DestroyModelMixin, ListModelMixin):
+class AuthorBookViewset(viewsets.GenericViewSet, CreateModelMixin,  UpdateModelMixin, DestroyModelMixin, ListModelMixin):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     lookup_field = 'isbn'
@@ -127,12 +130,16 @@ class AuthorBookViewset(viewsets.ModelViewSet, CreateModelMixin,  UpdateModelMix
     List published books
     """
 
+    @swagger_auto_schema(auto_schema=None)
+    def partial_update(self, request, *args, **kwargs):
+        pass
+
     def get_queryset(self):
         return Book.objects.filter(author=self.request.user.id)
 
 
 @permission_classes([IsAuthenticated, LibrarianPerm])
-class LibrarianBookViewset(viewsets.ModelViewSet, CreateModelMixin, UpdateModelMixin, ListModelMixin):
+class LibrarianBookViewset(viewsets.GenericViewSet, CreateModelMixin, UpdateModelMixin, ListModelMixin):
     queryset = BookCopy.objects.all()
     serializer_class = BookSerializer
     lookup_field = 'isbn'
@@ -142,6 +149,10 @@ class LibrarianBookViewset(viewsets.ModelViewSet, CreateModelMixin, UpdateModelM
     Update book copy
     List book copies 
     """
+
+    @swagger_auto_schema(auto_schema=None)
+    def partial_update(self, request, *args, **kwargs):
+        pass
 
     def list(self):
         books = self.get_queryset()
