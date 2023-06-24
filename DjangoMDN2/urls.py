@@ -16,10 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from catalog import views
 
 urlpatterns = [path("admin/", admin.site.urls)]
 
 
 urlpatterns += [
     path('catalog/', include('catalog.urls')),
+    path("accounts/login/", views.Login.as_view(), name="login"),
+    path("accounts/logout/", views.Logout.as_view(), name="logout"),
+    path("accounts/signup/", views.Signup.as_view(), name="signup"),
 ]
+
+# POST accounts/login
+# POST accounts/logout
+# POST accounts/signup
