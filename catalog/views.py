@@ -21,6 +21,11 @@ class BookViewset(viewsets.ModelViewSet,  RetrieveModelMixin, ListModelMixin):
     serializer_class = BookSerializer
     lookup_field = "isbn"
 
+    """
+    List books
+    Get one book detail
+    """
+
     def retrieve(self, request, *args, **kwargs):
         copies = BookCopy.objects.filter(book=kwargs['isbn'])
         serializer = BookCopySerializer(copies, many=True)
@@ -66,12 +71,15 @@ class Logout(APIView):
 
 # personal
 @permission_classes([IsAuthenticated, UserPerm])
-class UserBookCopyViewset(viewsets.ModelViewSet, CreateModelMixin,  UpdateModelMixin, ListModelMixin):
+class UserBookCopyViewset(viewsets.ModelViewSet, UpdateModelMixin, ListModelMixin):
     queryset = BookCopy.objects.all()
     serializer_class = BookCopySerializer
     lookup_field = 'isbn'
 
-    """Show books depend on category"""
+    """
+    Show books depend on category
+    Reserve book copies
+    """
 
     def list(self, request):
         queryset = self.get_queryset()
@@ -89,8 +97,6 @@ class UserBookCopyViewset(viewsets.ModelViewSet, CreateModelMixin,  UpdateModelM
         serializer = BookCopySerializer(queryset, many=True)
         return Response(serializer.data)
 
-    """Reserve book copies"""
-
     def update(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         if queryset.availability == "a":
@@ -107,6 +113,13 @@ class AuthorBookViewset(viewsets.ModelViewSet, CreateModelMixin,  UpdateModelMix
     serializer_class = BookSerializer
     lookup_field = 'isbn'
 
+    """
+    Create new book
+    Update book
+    Delete Book 
+    List published books
+    """
+
     def get_queryset(self):
         return Book.objects.filter(author=self.request.user.id)
 
@@ -116,6 +129,12 @@ class LibrarianBookViewset(viewsets.ModelViewSet, CreateModelMixin, UpdateModelM
     queryset = BookCopy.objects.all()
     serializer_class = BookSerializer
     lookup_field = 'isbn'
+
+    """
+    Create new book copy 
+    Update book copy
+    List book copies 
+    """
 
     def list(self):
         books = self.get_queryset()
